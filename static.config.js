@@ -1,4 +1,4 @@
-import nodeExternals from 'webpack-node-externals'
+import React from 'react'
 import { clearChunks, flushChunkNames } from 'react-universal-component/server'
 import flushChunks from 'webpack-flush-chunks'
 import webpack from 'webpack'
@@ -40,6 +40,37 @@ export default {
       component: 'src/containers/404',
     },
   ],
+  renderToHtml: (renderToString, App, meta, clientStats) => {
+    clearChunks()
+    const html = renderToString(App)
+
+    const chunkNames = flushChunkNames()
+
+    console.log('flushedChunkNames', chunkNames)
+    const { scripts } = flushChunks(clientStats, {
+      chunkNames,
+    })
+
+    meta.scripts = scripts.filter(script => script.split('.')[0] !== 'app')
+
+    return html
+  },
+  Document: ({ Html, Head, Body, children, siteProps, renderMeta }) => (
+    <Html lang="en-US">
+      <Head>
+        <meta charSet="UTF-8" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"
+        />
+      </Head>
+      <Body>
+        {children}
+        {renderMeta.scripts &&
+          renderMeta.scripts.map(script => <script type="text/javascript" src={`/${script}`} />)}
+      </Body>
+    </Html>
+  ),
   webpack: (config, { stage, defaultLoaders }) => {
     if (stage === 'node') {
       config.externals = externals
@@ -51,6 +82,14 @@ export default {
       )
     }
 
-    console.log(config.target)
+    if (stage === 'prod') {
+      config.plugins.push(
+        new webpack.optimize.CommonsChunkPlugin({
+          name: 'bootstrap',
+          filename: 'bootstrap.[hash:6].js',
+          minChunks: Infinity,
+        }),
+      )
+    }
   },
 }

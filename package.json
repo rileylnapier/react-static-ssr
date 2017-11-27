@@ -15,7 +15,7 @@
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "react-router": "^4.2.0",
-    "react-static": "^4.3.4",
+    "react-static": "https://github.com/rileylnapier/react-static#webpackStats",
     "react-universal-component": "^2.7.0",
     "webpack-flush-chunks": "^1.2.2"
   },
